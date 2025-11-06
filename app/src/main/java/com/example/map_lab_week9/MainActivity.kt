@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.map_lab_week9.ui.theme.MAP_Lab_Week9Theme
 
-// Data model
+// Data model (sesuai modul halaman 8)
 data class Student(var name: String)
 
 class MainActivity : ComponentActivity() {
@@ -41,15 +41,16 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Home(listOf("Tanu", "Tina", "Tono"))
+                    Home() // Tidak ada parameter (sesuai modul halaman 12)
                 }
             }
         }
     }
 }
 
+// Home Composable (sesuai modul halaman 8–9)
 @Composable
-fun Home(listOf: List<String>) {
+fun Home() {
     val listData = remember { mutableStateListOf(
         Student("Tanu"),
         Student("Tina"),
@@ -64,6 +65,7 @@ fun Home(listOf: List<String>) {
             inputField = inputField.copy(name = input)
         },
         onButtonClick = {
+            // ✅ ASSIGNMENT: Validasi input tidak boleh kosong
             if (inputField.name.isNotBlank()) {
                 listData.add(inputField)
                 inputField = Student("")
@@ -72,13 +74,7 @@ fun Home(listOf: List<String>) {
     )
 }
 
-@Preview(showBackground = true, name = "Preview_1")
-@Composable
-fun PreviewHome() {
-    MAP_Lab_Week9Theme {
-        Home(listOf("Tanu", "Tina", "Tono"))
-    }
-}
+// HomeContent Composable (sesuai modul halaman 10–12)
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
@@ -116,9 +112,13 @@ fun HomeContent(
             }
         }
     }
-
-
-
 }
 
-
+// Preview (sesuai modul halaman 7 & 12)
+@Preview(showBackground = true)
+@Composable
+fun PreviewHome() {
+    MAP_Lab_Week9Theme {
+        Home()
+    }
+}
