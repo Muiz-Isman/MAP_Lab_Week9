@@ -37,7 +37,6 @@ import com.example.map_lab_week9.ui.theme.OnBackgroundTitleText
 import com.example.map_lab_week9.ui.theme.OnBackgroundItemText
 import com.example.map_lab_week9.ui.theme.PrimaryTextButton
 
-// Data model
 data class Student(var name: String)
 
 class MainActivity : ComponentActivity() {
@@ -57,13 +56,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Root composable untuk navigasi
 @Composable
 fun App(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
             Home { listData ->
-                // Konversi list ke string (seperti di modul halaman 18)
                 val listString = listData.joinToString(", ")
                 navController.navigate("resultContent/?listData=$listString")
             }
@@ -78,7 +75,6 @@ fun App(navController: NavHostController) {
     }
 }
 
-// Home menerima fungsi navigasi
 @Composable
 fun Home(navigateFromHomeToResult: (List<Student>) -> Unit) {
     val listData = remember { mutableStateListOf(
@@ -95,20 +91,18 @@ fun Home(navigateFromHomeToResult: (List<Student>) -> Unit) {
             inputField = inputField.copy(name = input)
         },
         onButtonClick = {
-            // ✅ ASSIGNMENT: CEGAH SUBMIT KOSONG
+            // ASSIGNMENT 1: Untuk mencegah input kosong
             if (inputField.name.isNotBlank()) {
                 listData.add(inputField)
                 inputField = Student("")
             }
         },
         navigateFromHomeToResult = {
-            // Kirim seluruh list ke result
             navigateFromHomeToResult(listData.toList())
         }
     )
 }
 
-// HomeContent dengan tombol "Finish"
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
@@ -156,7 +150,6 @@ fun HomeContent(
     }
 }
 
-// Halaman hasil
 @Composable
 fun ResultContent(listData: String) {
     Column(
