@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.map_lab_week9.ui.theme.MAP_Lab_Week9Theme
 import com.example.map_lab_week9.ui.theme.OnBackgroundTitleText
 import com.example.map_lab_week9.ui.theme.OnBackgroundItemText
@@ -42,15 +49,38 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Home()
+                    val navController = rememberNavController()
+                    App(navController)
                 }
             }
         }
     }
 }
 
+// Root composable untuk navigasi
 @Composable
-fun Home() {
+fun App(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = "home") {
+        composable("home") {
+            Home { listData ->
+                // Konversi list ke string (seperti di modul halaman 18)
+                val listString = listData.joinToString(", ")
+                navController.navigate("resultContent/?listData=$listString")
+            }
+        }
+        composable(
+            "resultContent/?listData={listData}",
+            arguments = listOf(navArgument("listData") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val listData = backStackEntry.arguments?.getString("listData").orEmpty()
+            ResultContent(listData)
+        }
+    }
+}
+
+// Home menerima fungsi navigasi
+@Composable
+fun Home(navigateFromHomeToResult: (List<Student>) -> Unit) {
     val listData = remember { mutableStateListOf(
         Student("Tanu"),
         Student("Tina"),
@@ -65,20 +95,27 @@ fun Home() {
             inputField = inputField.copy(name = input)
         },
         onButtonClick = {
+            // ✅ ASSIGNMENT: CEGAH SUBMIT KOSONG
             if (inputField.name.isNotBlank()) {
                 listData.add(inputField)
                 inputField = Student("")
             }
+        },
+        navigateFromHomeToResult = {
+            // Kirim seluruh list ke result
+            navigateFromHomeToResult(listData.toList())
         }
     )
 }
 
+// HomeContent dengan tombol "Finish"
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
     inputField: Student,
     onInputValueChange: (String) -> Unit,
-    onButtonClick: () -> Unit
+    onButtonClick: () -> Unit,
+    navigateFromHomeToResult: () -> Unit
 ) {
     LazyColumn {
         item {
@@ -88,7 +125,6 @@ fun HomeContent(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // ✅ Gunakan komponen dari Elements.kt
                 OnBackgroundTitleText(text = stringResource(id = R.string.enter_item))
 
                 TextField(
@@ -97,9 +133,13 @@ fun HomeContent(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
 
-                // ✅ Gunakan PrimaryTextButton
-                PrimaryTextButton(text = stringResource(id = R.string.button_click)) {
-                    onButtonClick()
+                Row {
+                    PrimaryTextButton(text = stringResource(id = R.string.button_click)) {
+                        onButtonClick()
+                    }
+                    PrimaryTextButton(text = stringResource(id = R.string.button_navigate)) {
+                        navigateFromHomeToResult()
+                    }
                 }
             }
         }
@@ -110,10 +150,23 @@ fun HomeContent(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // ✅ Gunakan OnBackgroundItemText
                 OnBackgroundItemText(text = item.name)
             }
         }
+    }
+}
+
+// Halaman hasil
+@Composable
+fun ResultContent(listData: String) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OnBackgroundItemText(text = "Submitted Names:")
+        OnBackgroundItemText(text = listData)
     }
 }
 
@@ -121,6 +174,6 @@ fun HomeContent(
 @Composable
 fun PreviewHome() {
     MAP_Lab_Week9Theme {
-        Home()
+        Home { }
     }
 }
