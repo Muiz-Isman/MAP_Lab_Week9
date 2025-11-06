@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,8 +26,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.map_lab_week9.ui.theme.MAP_Lab_Week9Theme
+import com.example.map_lab_week9.ui.theme.OnBackgroundTitleText
+import com.example.map_lab_week9.ui.theme.OnBackgroundItemText
+import com.example.map_lab_week9.ui.theme.PrimaryTextButton
 
-// Data model (sesuai modul halaman 8)
+// Data model
 data class Student(var name: String)
 
 class MainActivity : ComponentActivity() {
@@ -41,14 +42,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Home() // Tidak ada parameter (sesuai modul halaman 12)
+                    Home()
                 }
             }
         }
     }
 }
 
-// Home Composable (sesuai modul halaman 8–9)
 @Composable
 fun Home() {
     val listData = remember { mutableStateListOf(
@@ -65,7 +65,6 @@ fun Home() {
             inputField = inputField.copy(name = input)
         },
         onButtonClick = {
-            // ✅ ASSIGNMENT: Validasi input tidak boleh kosong
             if (inputField.name.isNotBlank()) {
                 listData.add(inputField)
                 inputField = Student("")
@@ -74,7 +73,6 @@ fun Home() {
     )
 }
 
-// HomeContent Composable (sesuai modul halaman 10–12)
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
@@ -90,14 +88,18 @@ fun HomeContent(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = stringResource(id = R.string.enter_item))
+                // ✅ Gunakan komponen dari Elements.kt
+                OnBackgroundTitleText(text = stringResource(id = R.string.enter_item))
+
                 TextField(
                     value = inputField.name,
                     onValueChange = onInputValueChange,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
-                Button(onClick = onButtonClick) {
-                    Text(text = stringResource(id = R.string.button_click))
+
+                // ✅ Gunakan PrimaryTextButton
+                PrimaryTextButton(text = stringResource(id = R.string.button_click)) {
+                    onButtonClick()
                 }
             }
         }
@@ -108,13 +110,13 @@ fun HomeContent(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = item.name)
+                // ✅ Gunakan OnBackgroundItemText
+                OnBackgroundItemText(text = item.name)
             }
         }
     }
 }
 
-// Preview (sesuai modul halaman 7 & 12)
 @Preview(showBackground = true)
 @Composable
 fun PreviewHome() {
