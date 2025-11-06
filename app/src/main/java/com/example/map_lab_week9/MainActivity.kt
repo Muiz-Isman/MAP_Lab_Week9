@@ -36,9 +36,21 @@ import com.example.map_lab_week9.ui.theme.MAP_Lab_Week9Theme
 import com.example.map_lab_week9.ui.theme.OnBackgroundTitleText
 import com.example.map_lab_week9.ui.theme.OnBackgroundItemText
 import com.example.map_lab_week9.ui.theme.PrimaryTextButton
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
+// --- MOSHI SETUP ---
+val moshi = Moshi.Builder()
+    .add(KotlinJsonAdapterFactory())
+    .build()
+
+// --- DATA MODEL ---
+@JsonClass(generateAdapter = false)
 data class Student(var name: String)
 
+// --- MAIN ACTIVITY ---
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,25 +68,30 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// --- ROOT COMPOSABLE (NAVIGATION) ---
 @Composable
 fun App(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
             Home { listData ->
-                val listString = listData.joinToString(", ")
-                navController.navigate("resultContent/?listData=$listString")
+                // ✅ BONUS: Convert list to JSON using Moshi
+                val listType = Types.newParameterizedType(List::class.java, Student::class.java)
+                val adapter = moshi.adapter<List<Student>>(listType)
+                val jsonString = adapter.toJson(listData)
+                navController.navigate("resultContent/?listData=$jsonString")
             }
         }
         composable(
             "resultContent/?listData={listData}",
             arguments = listOf(navArgument("listData") { type = NavType.StringType })
         ) { backStackEntry ->
-            val listData = backStackEntry.arguments?.getString("listData").orEmpty()
-            ResultContent(listData)
+            val jsonString = backStackEntry.arguments?.getString("listData").orEmpty()
+            ResultContent(jsonString)
         }
     }
 }
 
+// --- HOME SCREEN ---
 @Composable
 fun Home(navigateFromHomeToResult: (List<Student>) -> Unit) {
     val listData = remember { mutableStateListOf(
@@ -91,7 +108,7 @@ fun Home(navigateFromHomeToResult: (List<Student>) -> Unit) {
             inputField = inputField.copy(name = input)
         },
         onButtonClick = {
-            // ASSIGNMENT 1: Untuk mencegah input kosong
+            // ✅ ASSIGNMENT NO. 1: CEGAH SUBMIT KOSONG
             if (inputField.name.isNotBlank()) {
                 listData.add(inputField)
                 inputField = Student("")
@@ -103,6 +120,7 @@ fun Home(navigateFromHomeToResult: (List<Student>) -> Unit) {
     )
 }
 
+// --- HOME CONTENT (UI) ---
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
@@ -150,19 +168,33 @@ fun HomeContent(
     }
 }
 
+// --- RESULT SCREEN (BONUS: JSON + LAZYCOLUMN) ---
 @Composable
-fun ResultContent(listData: String) {
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
+fun ResultContent(jsonString: String) {
+    // ✅ Parse JSON back to List<Student>
+    val listType = Types.newParameterizedType(List::class.java, Student::class.java)
+    val adapter = moshi.adapter<List<Student>>(listType)
+    val studentList = try {
+        adapter.fromJson(jsonString) ?: emptyList()
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    // ✅ Display with LazyColumn (as per Bonus requirement)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        OnBackgroundItemText(text = "Submitted Names:")
-        OnBackgroundItemText(text = listData)
+        item {
+            OnBackgroundTitleText(text = "Submitted Names (from JSON):")
+        }
+        items(studentList) { student ->
+            OnBackgroundItemText(text = student.name)
+        }
     }
 }
 
+// --- PREVIEW (for development only) ---
 @Preview(showBackground = true)
 @Composable
 fun PreviewHome() {
