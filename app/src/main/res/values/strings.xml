@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">MAP_Lab_Week9</string>
+    <string name="enter_item">Enter a name</string>
+    <string name="button_click">Submit</string>
+    <string name="button_navigate">Finish</string>
+    <string name="list_title">Student List</string>
+
 </resources>
